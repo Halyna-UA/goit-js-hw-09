@@ -1,55 +1,41 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-Notify.init({
-  useIcon: false,
-  position: 'right-top',
-  cssAnimationStyle: 'from-top',
-});
-
 const form = document.querySelector('.form');
-form.addEventListener('change', onChangeInput);
 
-function onChangeInput(event){
-  const delay = Number(event.currentTarget.elements.delay.value);
-  const step = Number(event.currentTarget.elements.step.value);
-  const amount = Number(event.currentTarget.elements.amount.value);
-  return { delay, step, amount };
-}
-
-form.addEventListener('submit', onFormSubmit);
-
-function onFormSubmit(event){
+form.addEventListener("submit", onSubmitClick);
+  
+function onSubmitClick (event) {
   event.preventDefault();
+  const { delay, step, amount } = event.currentTarget;
+   
+  let dalayPromise = Number(delay.value);
 
-  let { delay, step, amount } = onChangeInput(event);
-  console.log({ delay, step, amount });
-
-  for (let i = 0; i < amount; i + 1){
-
-    createPromise(i + 1, delay);
-     delay += step;
+  for (let i = 1; i <= amount.value; i++) {
+    createPromise(i, dalayPromise).then(onFulfilled).catch(onRejected);;
+    dalayPromise += Number(step.value);
   };
- };
-
+};
 
 function createPromise(position, delay) {
 
-  return new Promise((resolve, reject) => {
-    const shouldResolve = Math.random() > 0.3;
-  if (shouldResolve) {
-    // Fulfill
-    setTimeout(() => resolve({ position, delay }), delay);
-  } else {
-    // Reject
-    setTimeout(() => reject({ position, delay }), delay);
-  }
-  })
+return new Promise((resolve, reject) => {
+  const canFulfill = Math.random() > 0.3;
 
-.then(({ position, delay }) => setTimeout(() => {
-      Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`);
-    }), delay)
-    .catch(({ position, delay }) => setTimeout(() => {
-      Notify.failure(`❌ Rejected promise ${position} in ${delay}ms`);
-    }),
-    )
- }
+  setTimeout(() => {
+    if (canFulfill) {
+      resolve(`✅ Fulfilled promise ${position} in ${delay}ms`);
+    }
+
+    reject(`❌ Rejected promise ${position} in ${delay}ms`);
+  }, delay);
+});
+  
+}
+
+function onFulfilled(result) {
+ Notify.success(result);
+}
+
+function onRejected(error) {
+ Notify.failure(error);
+}
